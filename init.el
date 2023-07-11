@@ -14,11 +14,37 @@
   (package-install 'evil-collection))
 (unless (package-installed-p 'nerd-icons)
   (package-install 'nerd-icons))
+(unless (package-installed-p 'centaur-tabs)
+  (package-install 'centaur-tabs))
+(unless (package-installed-p 'treemacs-evil)
+  (package-install 'treemacs-evil))
+(unless (package-installed-p 'general)
+  (package-install 'general))
+(unless (package-installed-p 'which-key)
+  (package-install 'which-key))
+(unless (package-installed-p 'helm)
+  (package-install 'helm))
+(unless (package-installed-p 'molokai-theme)
+  (package-install 'molokai-theme))
+(unless (package-installed-p 'color-theme-modern)
+  (package-install 'color-theme-modern))
+(unless (package-installed-p 'company-go)
+  (package-install 'company-go))
+(unless (package-installed-p 'go-mode)
+  (package-install 'go-mode))
+(unless (package-installed-p 'company)
+  (package-install 'company))
+
 
 ;; Globals
 (set-frame-font "FiraCode Nerd Font Mono 14" nil t)
 (tool-bar-mode -1)
-(menu-bar-mode -1)
+
+;; If on mac, enable menubar case yabai
+(if (eq system-type 'darwin)
+    (menu-bar-mode 1)
+  (menu-bar-mode -1))
+
 (global-display-line-numbers-mode)
 (setq display-line-numbers-type 'relative)
 
@@ -53,29 +79,30 @@
   (evil-collection-init))
 (evil-mode 1)
 
-;; Tabbar
-;; (require 'tabbar)
-;; (customize-set-variable 'tabbar-background-color "gray20")
-;; (customize-set-variable 'tabbar-separator '(0.5))
-;; (customize-set-variable 'tabbar-use-images t)
-;; (tabbar-mode 1)
-;; 
-;; (set-face-attribute 'tabbar-default nil
-;;         :background "gray20" :foreground 
-;;         "gray60" :distant-foreground "gray50"
-;;         :family "FiraCode Nerd Font Mono" :box nil)
-;; (set-face-attribute 'tabbar-unselected nil
-;;         :background "gray80" :foreground "black" :box nil)
-;; (set-face-attribute 'tabbar-modified nil
-;;         :foreground "red4" :box nil
-;;         :inherit 'tabbar-unselected)
-;; (set-face-attribute 'tabbar-selected nil
-;;         :background "#4090c0" :foreground "white" :box nil)
-;; (set-face-attribute 'tabbar-selected-modified nil
-;;         :inherit 'tabbar-selected :foreground "GoldenRod2" :box nil)
-;; (set-face-attribute 'tabbar-button nil
-;;         :box nil)
+(global-set-key "\C-c" nil)
+; (define-key (current-local-map) "\C-c" nil)
+; (define-key (mml-mode-map) "\C-c" nil)
+;;; C-c as general purpose escape key sequence.
+;;;
+(defun my-esc (prompt)
+    "Functionality for escaping generally.  Includes exiting Evil insert state and C-g binding. "
+    (cond
+    ;; If we're in one of the Evil states that defines [escape] key, return [escape] so as
+    ;; Key Lookup will use it.
+    ((or (evil-insert-state-p) (evil-normal-state-p) (evil-replace-state-p) (evil-visual-state-p)) [escape])
+    ;; This is the best way I could infer for now to have C-c work during evil-read-key.
+    ;; Note: As long as I return [escape] in normal-state, I don't need this.
+    ;;((eq overriding-terminal-local-map evil-read-key-map) (keyboard-quit) (kbd ""))
+    (t (kbd "C-g"))))
+(define-key key-translation-map (kbd "C-c") 'my-esc)
+;; Works around the fact that Evil uses read-event directly when in operator state, which
+;; doesn't use the key-translation-map.
+(define-key evil-operator-state-map (kbd "C-c") 'keyboard-quit)
+;; Not sure what behavior this changes, but might as well set it, seeing the Elisp manual's
+;; documentation of it.
+;; (set-quit-char "C-c")
 
+;; Centaur-tabs
 (require 'centaur-tabs)
 (centaur-tabs-mode t)
 (evil-global-set-key 'normal (kbd "<backtab>") 'centaur-tabs-backward)
@@ -116,6 +143,59 @@
 
 (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
 
+;; Company
+(require 'company)
+(require 'go-mode)
+
+;; Company mode
+(setq company-idle-delay 0)
+(setq company-minimum-prefix-length 1)
+
+;; Go - lsp-mode
+;; Set up before-save hooks to format buffer and add/delete imports.
+(defun lsp-go-install-save-hooks ()
+  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
+
+;; Start LSP Mode and YASnippet mode
+(add-hook 'go-mode-hook #'lsp-deferred)
+(add-hook 'go-mode-hook #'yas-minor-mode)
+
+;; Vterm
+(require 'multi-vterm)
+(setq multi-vterm-dedicated-window-height-percent 25)
+(define-key vterm-mode-map [return]                      #'vterm-send-return)
+
+(setq vterm-keymap-exceptions nil)
+(evil-define-key 'insert vterm-mode-map (kbd "C-e")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-f")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-a")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-v")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-b")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-w")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-u")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-d")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-n")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-m")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-p")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-j")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-k")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-r")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-t")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-g")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-c")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-SPC")    #'vterm--self-insert)
+(evil-define-key 'normal vterm-mode-map (kbd "C-d")      #'vterm--self-insert)
+(evil-define-key 'normal vterm-mode-map (kbd "<esc>")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "<esc>")      #'vterm--self-insert)
+(evil-define-key 'normal vterm-mode-map (kbd ",c")       #'multi-vterm)
+(evil-define-key 'normal vterm-mode-map (kbd ",n")       #'multi-vterm-next)
+(evil-define-key 'normal vterm-mode-map (kbd ",p")       #'multi-vterm-prev)
+(evil-define-key 'normal vterm-mode-map (kbd "i")        #'evil-insert-resume)
+(evil-define-key 'normal vterm-mode-map (kbd "o")        #'evil-insert-resume)
+(evil-define-key 'normal vterm-mode-map (kbd "<return>") #'evil-insert-resume)
+
 ;; Mappings
 (require 'general)
 (general-create-definer leader-def
@@ -136,6 +216,8 @@
  "af" 'helm-find-files
 
  "kw" 'helm-occur
+ "lr" 'lsp-find-references
+ "ln" 'lsp-rename
  )
 
 (global-set-key (kbd "M-h") 'windmove-left)
@@ -177,7 +259,7 @@
    '("42abd324628cb258bb8bbb1fc8ebcd4920f6681f616eb1ac80c6f8853258c595" "9ac11c78f208abf58e5b313a33147cbf209ad9dc9cb169bf82464b043b45ad7a" "9dc64d345811d74b5cd0dac92e5717e1016573417b23811b2c37bb985da41da2" "6a2cc07c407e8321f0df155988e60b39fe6f2488d2c79a6b14211854ea6fbc52" "cdc2a7ba4ecf0910f13ba207cce7080b58d9ed2234032113b8846a4e44597e41" "c3fa63eab93d1f0b4bf9f60a98a2848ba29c34cc6f2ef5cf4076d9c190a47a6c" "be0efbaebc85494f3c1c06e320fd13a24abf485d5f221a90fe811cea9a39ed85" default))
  '(helm-minibuffer-history-key "M-p")
  '(package-selected-packages
-   '(centaur-tabs treemacs-evil general which-key helm evil-collection molokai-theme color-theme-modern evil)))
+   '(vterm-toggle multi-vterm vterm company-go yasnippet lsp-ui lsp-mode go-mode company projectile centaur-tabs treemacs-evil general which-key helm evil-collection molokai-theme color-theme-modern evil)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
