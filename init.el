@@ -1,4 +1,7 @@
 ;; Packages
+(set-face-attribute 'default nil :family "FiraCode Nerd Font Mono" :height 140)
+(setq inhibit-startup-screen t
+      initial-buffer-choice  nil)
 (require 'package)
 (add-to-list 'package-archives
              '("melpa" . "https://melpa.org/packages/"))
@@ -34,10 +37,14 @@
   (package-install 'go-mode))
 (unless (package-installed-p 'company)
   (package-install 'company))
+(unless (package-installed-p 'dashboard)
+  (package-install 'dashboard))
+(unless (package-installed-p 'multi-vterm)
+  (package-install 'multi-vterm))
 
 
 ;; Globals
-(set-frame-font "FiraCode Nerd Font Mono 14" nil t)
+;; (set-frame-font "FiraCode Nerd Font Mono 14" nil t)
 (tool-bar-mode -1)
 
 ;; If on mac, enable menubar case yabai
@@ -70,12 +77,13 @@
 (setq helm-input-idle-delay                     0.01
       helm-reuse-last-window-split-state        t
       helm-always-two-windows                   t
-      helm-split-window-inside-p                nil
-      helm-commands-using-frame                 '(completion-at-point
-                                                  helm-apropos
-                                                  helm-eshell-prompts helm-imenu
-                                                  helm-imenu-in-all-buffers)
-      helm-actions-inherit-frame-settings       t
+      helm-split-window-inside-p                t
+      helm-commands-using-frame                 nil
+;;       helm-commands-using-frame                 '(completion-at-point
+;;                                                   helm-apropos
+;;                                                   helm-eshell-prompts helm-imenu
+;;                                                   helm-imenu-in-all-buffers)
+      helm-actions-inherit-frame-settings       nil
       helm-use-frame-when-more-than-two-windows t
       helm-use-frame-when-dedicated-window      t
       ; helm-frame-background-color               "DarkSlateGray"
@@ -103,28 +111,28 @@
   (evil-collection-init))
 (evil-mode 1)
 
-(global-set-key "\C-c" nil)
+;; (global-set-key "\C-c" nil)
 ; (define-key (current-local-map) "\C-c" nil)
 ; (define-key (mml-mode-map) "\C-c" nil)
 ;;; C-c as general purpose escape key sequence.
 ;;;
-(defun my-esc (prompt)
-    "Functionality for escaping generally.  Includes exiting Evil insert state and C-g binding. "
-    (cond
-    ;; If we're in one of the Evil states that defines [escape] key, return [escape] so as
-    ;; Key Lookup will use it.
-    ((or (evil-insert-state-p) (evil-normal-state-p) (evil-replace-state-p) (evil-visual-state-p)) [escape])
-    ;; This is the best way I could infer for now to have C-c work during evil-read-key.
-    ;; Note: As long as I return [escape] in normal-state, I don't need this.
-    ;;((eq overriding-terminal-local-map evil-read-key-map) (keyboard-quit) (kbd ""))
-    (t (kbd "C-g"))))
-(define-key key-translation-map (kbd "C-c") 'my-esc)
-;; Works around the fact that Evil uses read-event directly when in operator state, which
-;; doesn't use the key-translation-map.
-(define-key evil-operator-state-map (kbd "C-c") 'keyboard-quit)
-;; Not sure what behavior this changes, but might as well set it, seeing the Elisp manual's
-;; documentation of it.
-;; (set-quit-char "C-c")
+;; (defun my-esc (prompt)
+;;     "Functionality for escaping generally.  Includes exiting Evil insert state and C-g binding. "
+;;     (cond
+;;     ;; If we're in one of the Evil states that defines [escape] key, return [escape] so as
+;;     ;; Key Lookup will use it.
+;;     ((or (evil-insert-state-p) (evil-normal-state-p) (evil-replace-state-p) (evil-visual-state-p)) [escape])
+;;     ;; This is the best way I could infer for now to have C-c work during evil-read-key.
+;;     ;; Note: As long as I return [escape] in normal-state, I don't need this.
+;;     ;;((eq overriding-terminal-local-map evil-read-key-map) (keyboard-quit) (kbd ""))
+;;     (t (kbd "C-g"))))
+;; (define-key key-translation-map (kbd "C-c") 'my-esc)
+;; ;; Works around the fact that Evil uses read-event directly when in operator state, which
+;; ;; doesn't use the key-translation-map.
+;; (define-key evil-operator-state-map (kbd "C-c") 'keyboard-quit)
+;; ;; Not sure what behavior this changes, but might as well set it, seeing the Elisp manual's
+;; ;; documentation of it.
+;; ;; (set-quit-char "C-c")
 
 ;; Centaur-tabs
 (require 'centaur-tabs)
@@ -191,34 +199,50 @@
 (setq multi-vterm-dedicated-window-height-percent 25)
 (define-key vterm-mode-map [return]                      #'vterm-send-return)
 
-(setq vterm-keymap-exceptions nil)
-(evil-define-key 'insert vterm-mode-map (kbd "C-e")      #'vterm--self-insert)
-(evil-define-key 'insert vterm-mode-map (kbd "C-f")      #'vterm--self-insert)
-(evil-define-key 'insert vterm-mode-map (kbd "C-a")      #'vterm--self-insert)
-(evil-define-key 'insert vterm-mode-map (kbd "C-v")      #'vterm--self-insert)
-(evil-define-key 'insert vterm-mode-map (kbd "C-b")      #'vterm--self-insert)
-(evil-define-key 'insert vterm-mode-map (kbd "C-w")      #'vterm--self-insert)
-(evil-define-key 'insert vterm-mode-map (kbd "C-u")      #'vterm--self-insert)
-(evil-define-key 'insert vterm-mode-map (kbd "C-d")      #'vterm--self-insert)
-(evil-define-key 'insert vterm-mode-map (kbd "C-n")      #'vterm--self-insert)
-(evil-define-key 'insert vterm-mode-map (kbd "C-m")      #'vterm--self-insert)
-(evil-define-key 'insert vterm-mode-map (kbd "C-p")      #'vterm--self-insert)
-(evil-define-key 'insert vterm-mode-map (kbd "C-j")      #'vterm--self-insert)
-(evil-define-key 'insert vterm-mode-map (kbd "C-k")      #'vterm--self-insert)
-(evil-define-key 'insert vterm-mode-map (kbd "C-r")      #'vterm--self-insert)
-(evil-define-key 'insert vterm-mode-map (kbd "C-t")      #'vterm--self-insert)
-(evil-define-key 'insert vterm-mode-map (kbd "C-g")      #'vterm--self-insert)
-(evil-define-key 'insert vterm-mode-map (kbd "C-c")      #'vterm--self-insert)
-(evil-define-key 'insert vterm-mode-map (kbd "C-SPC")    #'vterm--self-insert)
-(evil-define-key 'normal vterm-mode-map (kbd "C-d")      #'vterm--self-insert)
-(evil-define-key 'normal vterm-mode-map (kbd "<esc>")      #'vterm--self-insert)
-(evil-define-key 'insert vterm-mode-map (kbd "<esc>")      #'vterm--self-insert)
-(evil-define-key 'normal vterm-mode-map (kbd ",c")       #'multi-vterm)
-(evil-define-key 'normal vterm-mode-map (kbd ",n")       #'multi-vterm-next)
-(evil-define-key 'normal vterm-mode-map (kbd ",p")       #'multi-vterm-prev)
-(evil-define-key 'normal vterm-mode-map (kbd "i")        #'evil-insert-resume)
-(evil-define-key 'normal vterm-mode-map (kbd "o")        #'evil-insert-resume)
-(evil-define-key 'normal vterm-mode-map (kbd "<return>") #'evil-insert-resume)
+(with-eval-after-load 'multi-vterm
+    (setq vterm-keymap-exceptions nil)
+    (evil-define-key 'insert vterm-mode-map (kbd "C-e")      #'vterm--self-insert)
+    (evil-define-key 'insert vterm-mode-map (kbd "C-f")      #'vterm--self-insert)
+    (evil-define-key 'insert vterm-mode-map (kbd "C-a")      #'vterm--self-insert)
+    (evil-define-key 'insert vterm-mode-map (kbd "C-v")      #'vterm--self-insert)
+    (evil-define-key 'insert vterm-mode-map (kbd "C-b")      #'vterm--self-insert)
+    (evil-define-key 'insert vterm-mode-map (kbd "C-w")      #'vterm--self-insert)
+    (evil-define-key 'insert vterm-mode-map (kbd "C-u")      #'vterm--self-insert)
+    (evil-define-key 'insert vterm-mode-map (kbd "C-d")      #'vterm--self-insert)
+    (evil-define-key 'insert vterm-mode-map (kbd "C-n")      #'vterm--self-insert)
+    (evil-define-key 'insert vterm-mode-map (kbd "C-m")      #'vterm--self-insert)
+    (evil-define-key 'insert vterm-mode-map (kbd "C-p")      #'vterm--self-insert)
+    (evil-define-key 'insert vterm-mode-map (kbd "C-j")      #'vterm--self-insert)
+    (evil-define-key 'insert vterm-mode-map (kbd "C-k")      #'vterm--self-insert)
+    (evil-define-key 'insert vterm-mode-map (kbd "C-r")      #'vterm--self-insert)
+    (evil-define-key 'insert vterm-mode-map (kbd "C-t")      #'vterm--self-insert)
+    (evil-define-key 'insert vterm-mode-map (kbd "C-g")      #'vterm--self-insert)
+    (evil-define-key 'insert vterm-mode-map (kbd "C-c")      #'vterm-send-C-c)
+    (evil-define-key 'insert vterm-mode-map (kbd "C-SPC")    #'vterm--self-insert)
+    (evil-define-key 'normal vterm-mode-map (kbd "C-d")      #'vterm--self-insert)
+    (evil-define-key 'normal vterm-mode-map (kbd "<esc>")      #'vterm--self-insert)
+    (evil-define-key 'insert vterm-mode-map (kbd "<esc>")      #'vterm--self-insert)
+    (evil-define-key 'normal vterm-mode-map (kbd ",c")       #'multi-vterm)
+    (evil-define-key 'normal vterm-mode-map (kbd "M-]")       #'multi-vterm-next)
+    (evil-define-key 'normal vterm-mode-map (kbd "M-[")       #'multi-vterm-prev)
+    (evil-define-key 'normal vterm-mode-map (kbd "i")        #'evil-insert-resume)
+    (evil-define-key 'normal vterm-mode-map (kbd "o")        #'evil-insert-resume)
+    (evil-define-key 'normal vterm-mode-map (kbd "<return>") #'evil-insert-resume)
+    (evil-define-key 'insert vterm-mode-map (kbd "\\ a s") #'multi-vterm-dedicated-toggle)
+    (evil-define-key 'insert vterm-mode-map (kbd "M-<return>") #'multi-vterm)
+    ;; Normal mode
+    (evil-define-key 'normal vterm-mode-map (kbd "M-h") 'windmove-left)
+    (evil-define-key 'normal vterm-mode-map (kbd "M-j") 'windmove-down)
+    (evil-define-key 'normal vterm-mode-map (kbd "M-k") 'windmove-up)
+    (evil-define-key 'normal vterm-mode-map (kbd "M-l") 'windmove-right)
+
+    ;; Insert mode
+    (evil-define-key 'insert vterm-mode-map (kbd "M-h") 'windmove-left)
+    (evil-define-key 'insert vterm-mode-map (kbd "M-j") 'windmove-down)
+    (evil-define-key 'insert vterm-mode-map (kbd "M-k") 'windmove-up)
+    (evil-define-key 'insert vterm-mode-map (kbd "M-l") 'windmove-right)
+)
+
 
 ;; Mappings
 (require 'general)
@@ -236,18 +260,29 @@
  :keymaps 'normal
  "aa" 'helm-find-files
  "ad" 'treemacs
+ "as" 'multi-vterm-dedicated-toggle
  "aj" 'helm-buffers-list
  "af" 'helm-find-files
 
  "kw" 'helm-occur
  "lr" 'lsp-find-references
  "ln" 'lsp-rename
+
+ "so" 'eval-buffer
  )
 
 (global-set-key (kbd "M-h") 'windmove-left)
 (global-set-key (kbd "M-j") 'windmove-down)
 (global-set-key (kbd "M-k") 'windmove-up)
 (global-set-key (kbd "M-l") 'windmove-right)
+(global-set-key (kbd "M-Q") 'delete-window)
+(global-set-key (kbd "M-q") 'kill-buffer)
+
+(with-eval-after-load 'treemacs
+  (define-key treemacs-mode-map (kbd "M-h") 'windmove-left)
+  (define-key treemacs-mode-map (kbd "M-j") 'windmove-down)
+  (define-key treemacs-mode-map (kbd "M-k") 'windmove-up)
+  (define-key treemacs-mode-map (kbd "M-l") 'windmove-right))
 
 ;; vnoremap > '>gv'
 (define-key evil-visual-state-map ">" (lambda ()
@@ -273,6 +308,9 @@
     (evil-visual-restore) ; re-select last visual-mode selection
 ))
 
+(setq ring-bell-function 'ignore)
+
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -280,10 +318,17 @@
  ;; If there is more than one, they won't work right.
  '(custom-enabled-themes '(molokai))
  '(custom-safe-themes
-   '("42abd324628cb258bb8bbb1fc8ebcd4920f6681f616eb1ac80c6f8853258c595" "9ac11c78f208abf58e5b313a33147cbf209ad9dc9cb169bf82464b043b45ad7a" "9dc64d345811d74b5cd0dac92e5717e1016573417b23811b2c37bb985da41da2" "6a2cc07c407e8321f0df155988e60b39fe6f2488d2c79a6b14211854ea6fbc52" "cdc2a7ba4ecf0910f13ba207cce7080b58d9ed2234032113b8846a4e44597e41" "c3fa63eab93d1f0b4bf9f60a98a2848ba29c34cc6f2ef5cf4076d9c190a47a6c" "be0efbaebc85494f3c1c06e320fd13a24abf485d5f221a90fe811cea9a39ed85" default))
+   '("7478bc74ae421ad2103d4239176f71e6d55ef0be4eb874c328b862af5b93a857"
+     "42abd324628cb258bb8bbb1fc8ebcd4920f6681f616eb1ac80c6f8853258c595"
+     "9ac11c78f208abf58e5b313a33147cbf209ad9dc9cb169bf82464b043b45ad7a"
+     "9dc64d345811d74b5cd0dac92e5717e1016573417b23811b2c37bb985da41da2"
+     "6a2cc07c407e8321f0df155988e60b39fe6f2488d2c79a6b14211854ea6fbc52"
+     "cdc2a7ba4ecf0910f13ba207cce7080b58d9ed2234032113b8846a4e44597e41"
+     "c3fa63eab93d1f0b4bf9f60a98a2848ba29c34cc6f2ef5cf4076d9c190a47a6c"
+     "be0efbaebc85494f3c1c06e320fd13a24abf485d5f221a90fe811cea9a39ed85"
+     default))
  '(helm-minibuffer-history-key "M-p")
- '(package-selected-packages
-   '(vterm-toggle multi-vterm vterm company-go yasnippet lsp-ui lsp-mode go-mode company projectile centaur-tabs treemacs-evil general which-key helm evil-collection molokai-theme color-theme-modern evil)))
+ '(package-selected-packages nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
